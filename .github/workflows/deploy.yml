@@ -26,7 +26,10 @@ jobs:
         with:
           ref: ${{ inputs.revision || github.sha }}
       - name: Build Docker image (smoke test)
-        run: docker build -t tc4-frontend-test:${{ inputs.revision || github.sha }} .
+        run: |
+          docker build \
+            --build-arg REACT_APP_BACKEND_URL=${{ vars.REACT_APP_BACKEND_URL }} \
+            -t tc4-frontend-test:${{ inputs.revision || github.sha }} .
 
   provision:
     name: Provision
@@ -60,14 +63,6 @@ jobs:
         id: ecr_login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.ecr_login.outputs.registry }}
-          IMAGE_TAG: ${{ inputs.revision || github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/${{ vars.SERVICE_NAME }}:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/${{ vars.SERVICE_NAME }}:$IMAGE_TAG
-
       - name: Terraform Init
         working-directory: infra
         run: |
@@ -76,13 +71,33 @@ jobs:
             -backend-config="key=${{ vars.TF_STATE_KEY }}" \
             -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Terraform Apply
+      - name: Terraform Apply (provision ECR first)
         working-directory: infra
         run: |
           terraform apply -input=false -auto-approve \
             -var="aws_region=${{ vars.AWS_REGION }}" \
             -var="service_name=${{ vars.SERVICE_NAME }}" \
-            -var="image_tag=${{ inputs.revision || github.sha }}"
+            -var="image_tag=${{ inputs.revision || github.sha }}" \
+            -var="backend_url=${{ vars.REACT_APP_BACKEND_URL }}"
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr_login.outputs.registry }}
+          IMAGE_TAG: ${{ inputs.revision || github.sha }}
+        run: |
+          docker build \
+            --build-arg REACT_APP_BACKEND_URL=${{ vars.REACT_APP_BACKEND_URL }} \
+            -t $ECR_REGISTRY/${{ vars.SERVICE_NAME }}:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ vars.SERVICE_NAME }}:$IMAGE_TAG
+
+      - name: Terraform Apply (deploy image)
+        working-directory: infra
+        run: |
+          terraform apply -input=false -auto-approve \
+            -var="aws_region=${{ vars.AWS_REGION }}" \
+            -var="service_name=${{ vars.SERVICE_NAME }}" \
+            -var="image_tag=${{ inputs.revision || github.sha }}" \
+            -var="backend_url=${{ vars.REACT_APP_BACKEND_URL }}"
 
       - name: Get ALB DNS
         id: tf_output
