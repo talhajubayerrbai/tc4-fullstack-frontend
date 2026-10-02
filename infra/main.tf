@@ -15,7 +15,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ── Data ──────────────────────────────────────────────────────────────────────
+# ── Data ─────────────────────────────────────────────────────────────────────
 data "aws_vpc" "default" {
   default = true
 }
@@ -27,7 +27,7 @@ data "aws_subnets" "public" {
   }
 }
 
-# ── ECR ───────────────────────────────────────────────────────────────────────
+# ── ECR ──────────────────────────────────────────────────────────────────────
 resource "aws_ecr_repository" "app" {
   name                 = var.service_name
   image_tag_mutability = "MUTABLE"
@@ -38,7 +38,7 @@ resource "aws_ecr_repository" "app" {
   }
 }
 
-# ── ECS Cluster ───────────────────────────────────────────────────────────────
+# ── ECS Cluster ──────────────────────────────────────────────────────────────
 resource "aws_ecs_cluster" "main" {
   name = "${var.service_name}-cluster"
 }
@@ -48,7 +48,7 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
   capacity_providers = ["FARGATE"]
 }
 
-# ── IAM for ECS task ─────────────────────────────────────────────────────────
+# ── IAM for ECS task ────────────────────────────────────────────────────────
 resource "aws_iam_role" "ecs_task_execution" {
   name = "${var.service_name}-ecs-exec-role"
 
@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "ecs_logs" {
   })
 }
 
-# ── Security groups ───────────────────────────────────────────────────────────
+# ── Security groups ──────────────────────────────────────────────────────────
 resource "aws_security_group" "alb" {
   name        = "${var.service_name}-alb-sg"
   description = "Allow HTTP inbound to ALB"
@@ -122,7 +122,7 @@ resource "aws_security_group" "ecs" {
   }
 }
 
-# ── ALB ───────────────────────────────────────────────────────────────────────
+# ── ALB ──────────────────────────────────────────────────────────────────────
 resource "aws_lb" "main" {
   name               = "${var.service_name}-alb"
   internal           = false
@@ -139,7 +139,7 @@ resource "aws_lb_target_group" "app" {
   target_type = "ip"
 
   health_check {
-    path                = "/"
+    path                = "/health"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -159,7 +159,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# ── ECS Task Definition ───────────────────────────────────────────────────────
+# ── ECS Task Definition ──────────────────────────────────────────────────────
 resource "aws_ecs_task_definition" "app" {
   family                   = var.service_name
   requires_compatibilities = ["FARGATE"]
@@ -189,7 +189,7 @@ resource "aws_ecs_task_definition" "app" {
   }])
 }
 
-# ── ECS Service ───────────────────────────────────────────────────────────────
+# ── ECS Service ──────────────────────────────────────────────────────────────
 resource "aws_ecs_service" "app" {
   name                              = var.service_name
   cluster                           = aws_ecs_cluster.main.id

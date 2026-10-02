@@ -1,0 +1,122 @@
+{
+  "edges": [
+    {
+      "from": "alb_frontend",
+      "id": "alb_frontend-tgt_01a0fa63ff04eb3ec98c98883c687bb1-0",
+      "kind": "routes_to",
+      "props": {},
+      "to": "tgt_01a0fa63ff04eb3ec98c98883c687bb1"
+    },
+    {
+      "from": "tgt_01a0fa63ff04eb3ec98c98883c687bb1",
+      "id": "tgt_01a0fa63ff04eb3ec98c98883c687bb1-ecr_frontend-0",
+      "kind": "uses",
+      "props": {},
+      "to": "ecr_frontend"
+    },
+    {
+      "from": "tgt_01a0fa63ff04eb3ec98c98883c687bb1",
+      "id": "tgt_01a0fa63ff04eb3ec98c98883c687bb1-cluster_frontend-0",
+      "kind": "uses",
+      "props": {},
+      "to": "cluster_frontend"
+    },
+    {
+      "from": "tgt_01a0fa63ff04eb3ec98c98883c687bb1",
+      "id": "tgt_01a0fa63ff04eb3ec98c98883c687bb1-tc4_backend_svc-0",
+      "kind": "depends_on",
+      "props": {},
+      "to": "tc4_backend_svc"
+    }
+  ],
+  "groups": [
+    {
+      "id": "env_01a0f9f18ee3da6b344d5732abb471d4",
+      "kind": "environment",
+      "name": "tc4-fullstack-dev",
+      "purpose": "other",
+      "ref": {
+        "id": "env_01a0f9f18ee3da6b344d5732abb471d4",
+        "kind": "environment"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "group": "env_01a0f9f18ee3da6b344d5732abb471d4",
+      "id": "tgt_01a0fa63ff04eb3ec98c98883c687bb1",
+      "name": "tc4-frontend",
+      "props": {
+        "cluster_id": "tc4-frontend-cluster",
+        "cpu": "256",
+        "desired_count": 1,
+        "image_repository": "tc4-frontend",
+        "memory": "512"
+      },
+      "ref": {
+        "id": "tgt_01a0fa63ff04eb3ec98c98883c687bb1",
+        "kind": "target"
+      },
+      "runtime_known": true,
+      "service_id": "svc_01a0f9f18eef99f9cb8436b5da00bf46",
+      "type": "service.ecs",
+      "words": {
+        "detail": "1 task \u00b7 256 cpu \u00b7 512 mem",
+        "family": "Service on ECS",
+        "glyph": "ECS",
+        "lane": "compute",
+        "name": "tc4-frontend"
+      }
+    },
+    {
+      "group": "env_01a0f9f18ee3da6b344d5732abb471d4",
+      "id": "ecr_frontend",
+      "name": "ECR (tc4-frontend)",
+      "props": {
+        "host": "241533126054.dkr.ecr.us-east-1.amazonaws.com",
+        "repository": "tc4-frontend"
+      },
+      "type": "resource.registry"
+    },
+    {
+      "group": "env_01a0f9f18ee3da6b344d5732abb471d4",
+      "id": "alb_frontend",
+      "name": "ALB (HTTP:80) \u2014 frontend",
+      "props": {
+        "layer": "application",
+        "region": "us-east-1",
+        "scheme": "internet-facing"
+      },
+      "type": "resource.load_balancer"
+    },
+    {
+      "group": "env_01a0f9f18ee3da6b344d5732abb471d4",
+      "id": "cluster_frontend",
+      "name": "ECS Fargate Cluster (tc4-frontend)",
+      "props": {
+        "name": "tc4-frontend-cluster",
+        "region": "us-east-1"
+      },
+      "type": "resource.cluster"
+    },
+    {
+      "group": "env_01a0f9f18ee3da6b344d5732abb471d4",
+      "id": "tc4_backend_svc",
+      "name": "tc4-backend",
+      "props": {
+        "cluster_id": "tc4-backend-cluster",
+        "cpu": "256",
+        "desired_count": 1,
+        "image_repository": "tc4-backend",
+        "memory": "512",
+        "region": "us-east-1"
+      },
+      "type": "service.ecs"
+    }
+  ],
+  "scope": {
+    "id": "svc_01a0f9f18eef99f9cb8436b5da00bf46",
+    "kind": "service"
+  },
+  "version": 1
+}
