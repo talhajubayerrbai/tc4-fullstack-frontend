@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://tc4-backend-alb-1181263056.us-east-1.elb.amazonaws.com';
 
 export default function App() {
   const [result, setResult] = useState(null);
