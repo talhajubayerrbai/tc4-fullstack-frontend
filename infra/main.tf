@@ -177,6 +177,10 @@ resource "aws_ecs_task_definition" "app" {
       hostPort      = 80
       protocol      = "tcp"
     }]
+    environment = [{
+      name  = "REACT_APP_BACKEND_URL"
+      value = var.backend_url
+    }]
     logConfiguration = {
       logDriver = "awslogs"
       options = {
